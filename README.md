@@ -1,28 +1,26 @@
-# myschoolsms v.2.0
+# myschoolsms v.2.1
 
-**GRE**: Η δεύτερη έκδοση της εφαρμογή ενημέρωσης των γονέων των μαθητών μέσω sms, γραμμένη σε Javascript και PHP. Περιλαμβάνει αρκετές βελτιώσεις σε σχέση με την πρώτη έκδοση που συνοψίζονται στα εξής:
+**GRE**: Στην V.2.1 προστέθηκαν οι παρακάτω δυνατότητες: 
 
-- Δυνατότητα δημιουργίας χρηστών ώστε να μπορούν ελεγχόμενα να κάνουν χρήση της πλατφόρμας
-- Υποστήριξη quota χρηστών ώστε να τίθενται όρια στις αποστολές
-- Group χρηστών με διαφορετικά δικαιώματα στην εφαρμογή
-- Βελτιωμένες αναφορές με αποδοτικότερη χρήση του Datatables plugin
+- Δυνατότητα υπενθύμισης του password στο email που βρίσκεται στο προφίλ του με την χρήση του **gmail**.
+- Δυνατότητα αποθήκευσης, χρήσης και διαχείρισης προτύπων sms ώστε να μην είναι αναγκαία η συνεχείς πληκτρολόγηση.
 
-**Eng**: Second version of my CRUD application for sending and managing SMS messages through http. It now supports: 
-- multiple users 
-- user groups with different privileges 
-- SMS user quotas
-- better reports and integration with the Datatables plugin
+
+**Eng**: In V.2.1 the following new features were added: 
+- password reminder 
+- SMS templates per users
 
 
 ## Περιγραφή
 
 Οι βασικές λειτουργίες της εφαρμογής περιγράφονται στο README της 
-πρώτης έκδοσης [εδώ](https://github.com/chertouras/myschoolsms)
+πρώτης έκδοσης [εδώ](https://github.com/chertouras/myschoolsms) και στο README του
+Master branch.
 
 ## Σημεία προσοχής:
 
-Με την εισαγωγή της δυνατότητας υποστήριξης πολλών χρηστών και λόγω έλλειψης χρόνου για τη δημιουργία ενός installer, η εφαρμογή απαιτεί για τη λειτουργία της τις παρακάτω, περαιτέρω από την πρώτη έκδοση, ρυθμίσεις: 
--  Την εισαγωγή των παραμέτρων σύνδεσης στη βάση δεδομένων **και** στο αρχείο **index.html** 
+Απαιτούνται οι περαιτέρω από την έκδοση V.2.0, ρυθμίσεις: 
+-  Την εισαγωγή των παραμέτρων σύνδεσης στη βάση δεδομένων **και** στο αρχείο **passwordReminder.php** 
 ``` 
 24.    $servername = "xxxxxxxxxxx";
 25.    $username_db = "xxxxxxxx";
@@ -30,16 +28,40 @@
 27.    $dbname = 'persons_db';
 
 ```
-- Tην εισαγωγή στο αρχείο **admin_statistics.php**, του κλειδιού του SMS παρόχου (tern.gr / easysms.gr) 
+## Σημεία προσοχής για τη λειτουργία του E- mail:
 
+Για να γίνει δυνατή η αποστολή email απαιτείται η ύπαρξη λογαριασμού Gmail μέσω του οποίου θα γίνει το smtp relay
+Τα βασικα σημεία προσοχής είναι τα ακόλουθα:
+- Download από το https://www.glob.com.au/sendmail/ του sendmail.zip 
+- Unzip και τοποθέτηση στο xampp (θα πρέπει να έχουμε ως αποτέλεσμα κάτι όπως c:\xampp\sendmail)
+- Εdit το sendmail.ini στο οποίο και τοποθετούμε τα στοιχεία του Gmail: 
+
+```               
+smtp_server=smtp.gmail.com
+smtp_port=465
+smtp_ssl=auto
+auth_username=xxxxxxxxx@gmail.com
+auth_password=xxxxxxxxxxxxxxxxx
+```   
+
+
+- Edit το php.ini στο c:\xampp\php\php.ini με τις εξής μετατροπές:
+              [mail function]
 ```
-38. $url = 'https://easysms.gr/api/balance/get?key=xxxxxxxxxxxxxxxxxxxx&type=json';
+; For Win32 only.
+; http://php.net/smtp
+SMTP=localhost
+; http://php.net/smtp-port
+smtp_port=25
+
+; For Win32 only.
+; http://php.net/sendmail-from
+;sendmail_from = me@example.com
+
+; For Unix only.  You may supply arguments as well (default: "sendmail -t -i").
+; http://php.net/sendmail-path
+sendmail_path ="C:\xampp\sendmail\sendmail.exe -t" 
 ```
-
-
-- **Εμπρόθετα επιλέχθηκε (για λόγους εξοικείωσης των διαχειριστών της εφαρμογής και κυρίως λόγω της εσωτερικής χρήσης τους -localhost- στο σχολείο ) να μην τοποθετούνται τα password με τιμή hash στη βάση δεδομένων**. Με αυτό τον τρόπο ο διαχειριστής θα μπορεί απλά να υπενθυμίζει τα password χωρίς να χρειάζεται να δημιουργεί καινούργια. Όποιος ενδιαφέρεται θα μπορούσε να επέμβει στον κώδικα και να χρησιμοποιήσει μια συνάρτηση τύπου **md5()** στην PHP πριν την αποθήκευση καθώς και μια αντίστοιχη πριν το login για τη σύγκρισή τους (σχετικά απλό).
-
-- Δημιουργήθηκε ένα αρχείο **smscenter_fake.php** για ψευδείς αποστολές SMS, όπου μπορεί να χρησιμοποιηθεί για πειραματισμό με την εφαρμογή χωρίς κόστος αποστολής. Με τη χρήση του, παράγεται μια  απάντηση τύπου json που είναι ίδια με την απάντηση του κέντρου της easysms.gr χωρίς όμως να αποστέλλεται πραγματικά το μήνυμα. Για να το χρησιμοποιήσετε απλά μετονομάστε το πραγματικό smscenter.php σε κάτι άλλο και δώστε στο smscenter_fake.php το όνομα smscenter.php
 
 # Ευχαριστίες
 
