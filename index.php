@@ -1,17 +1,20 @@
 <?php
 $_GET = array_map("trim", $_GET);
-$_GET = array_map('stripslashes', $_GET);
+$_GET=array_map('stripslashes', $_GET) ;
 $filtered_post_get = filter_var_array($_GET, FILTER_SANITIZE_STRING);
-if (isset($_GET['message'])) {
-    $crd = $_GET['message'];
-    if ($crd == 'invalid') {
-        $crd = "Παρακαλώ εισάγετε έγκυρα στοιχεία εισόδου";
-    }
-} else {
-    $crd = '';
-}
+if (isset($_GET['message'])){
+    $crd=$_GET['message'];
+        if ($crd=='invalid')
+            {
+                 $crd="Παρακαλώ εισάγετε έγκυρα στοιχεία εισόδου";
+            }
+                            }
+        else
+            {
+            $crd='';  
+            }
 $_POST = array_map("trim", $_POST);
-$_POST = array_map('stripslashes', $_POST);
+$_POST=array_map('stripslashes', $_POST) ;
 $filtered_post = filter_var_array($_POST, FILTER_SANITIZE_STRING);
 
 $username = $password = $userError = $passError = '';
@@ -20,47 +23,53 @@ if (isset($filtered_post['form-username']) && isset($filtered_post['form-passwor
     $pass_word = $filtered_post['form-password'];
     
 //connect to users database to identify who is logging in...
+//var_dump($password);
+$servername="localhost";
+$username_db="xxxx";
+$password_db="xxxxxx";
+$dbname='persons_db';
 
-    $servername = "xxxxxxxxxxx";
-    $username_db = "xxxxxxxx";
-    $password_db = "xxxxxxxxx";
-    $dbname = 'persons_db';
-
-    $mysqli = new mysqli($servername, $username_db, $password_db, $dbname);
-    $mysqli->set_charset('utf8');
+$mysqli = new mysqli($servername, $username_db, $password_db , $dbname);
+$mysqli->set_charset('utf8');
 // Check connection
-    if ($mysqli->connect_error) {
-        die("Connection failed: " . $mysqli->connect_error);
-    }
+if ($mysqli->connect_error) {
+    die("Connection failed: " . $mysqli->connect_error);
+}
+  
+
+$query= "SELECT Username , Passwd , Access_level FROM users WHERE Username = ?  AND  Passwd=?";
+$stmt = $mysqli->prepare($query);
+$stmt->bind_param('ss', $username , $pass_word);
+$stmt->execute();
 
 
-    $query = "SELECT Username , Passwd , Access_level FROM users WHERE Username = ?  AND  Passwd=?";
-    $stmt = $mysqli->prepare($query);
-    $stmt->bind_param('ss', $username, $pass_word);
-    $stmt->execute();
+$stmt->bind_result($Username, $Passwd, $Access_level );
+$stmt->store_result();
 
-
-    $stmt->bind_result($Username, $Passwd, $Access_level);
-    $stmt->store_result();
-
-    if ($stmt->num_rows == 1) {
-        $result = $stmt->fetch();
-
-        session_start();
+if ( $stmt->num_rows == 1)
+{
+    $result =  $stmt->fetch();
+    
+    session_start();
         $_SESSION['loggedIn'] = true;
         $_SESSION['Username'] = $Username;
         $_SESSION['Access_level'] = $Access_level;
-        $_SESSION['discard_after'] = time() + 3600;
-        header('Location: main.php');
-        exit();
-    } else {
-
-        header('Location: index.php?message=invalid');
-        exit();
-    }
-
-
+        $_SESSION['discard_after'] = time()+ 3600	;
+         header('Location: main.php');
+         exit();
 }
+
+else 
+
+
+{
+
+ header('Location: index.php?message=invalid');
+        exit();
+}
+
+
+   }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -77,6 +86,8 @@ if (isset($filtered_post['form-username']) && isset($filtered_post['form-passwor
         <link rel="stylesheet" href="assets/font-awesome/css/font-awesome.min.css">
 		<link rel="stylesheet" href="assets/css/form-elements.css">
         <link rel="stylesheet" href="assets/css/style.css">
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+
 
         <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -92,9 +103,35 @@ if (isset($filtered_post['form-username']) && isset($filtered_post['form-passwor
         <link rel="apple-touch-icon-precomposed" sizes="72x72" href="assets/ico/apple-touch-icon-72-precomposed.png">
         <link rel="apple-touch-icon-precomposed" href="assets/ico/apple-touch-icon-57-precomposed.png">
 
+
+     
+       
+
+<style>
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+ 
+
+</style>
+
+
     </head>
 
     <body>
+
+
+
+
+
+
 
         <!-- Top content -->
         <div class="top-content">
@@ -128,16 +165,75 @@ if (isset($filtered_post['form-username']) && isset($filtered_post['form-passwor
 			                    	<div class="form-group">
 			                    		<label class="sr-only" for="form-username">Username</label>
 			                        	<input type="text" name="form-username" placeholder="Username..." class="form-username form-control" id="form-username">
-			                            <span style="color:red"><?php echo $crd; ?></span>
+			                            <span style="color:red"><?php echo $crd;?></span>
                                     </div>
 			                        <div class="form-group">
 			                        	<label class="sr-only" for="form-password">Password</label>
 			                        	<input type="password" name="form-password" placeholder="Password..." class="form-password form-control" id="form-password">
-                                        <span style="color:red"><?php echo $crd; ?></span>
+                                        <span style="color:red"><?php echo $crd;?></span>
                                     </div>
 			                        <button type="submit" class="btn">Είσοδος</button>
 			                    </form>
-		                    </div>
+                 <span style="margin:5px"></span>
+
+<div class="modal fade" id="messageModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+   <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+       <div class="modal-header">
+         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+         <h4 class="modal-title" id="myModalLabel">  Μήνυμα Συστήματος   </h4>
+       </div>
+       <div class="modal-body" id="getMessage" style="overflow-x: scroll;">
+          
+       </div>
+    </div>
+   </div>
+ </div>
+
+
+<span id="helper">
+<div name="passwordResetModal" class="modal fade" id="modalSubscriptionForm" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Υπενθύμιση Password</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+      <form id="passwordResetForm" method="post">
+        <div class="md-form mb-5">
+          <i class="fas fa-user prefix grey-text"></i>
+          <input type="number" id="form3" class="form-control validate" name="Telephone1" required>
+          <label data-error="wrong" data-success="right" for="form3">Το τηλέφωνό σας ... </label>
+        </div>
+
+        <div class="md-form mb-4">
+          <i class="fas fa-envelope prefix grey-text"></i>
+          <input type="email" id="form2" class="form-control validate" name="email" required>
+          <label data-error="wrong" data-success="right" for="form2">Το email σας...</label>
+        </div>
+     
+      </div>
+      <div class="modal-footer d-flex justify-content-center">
+<button class="btn btn-indigo" id='submitButton' type="submit">Αποστολή </button>
+</form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="text-center">
+  <a href="" class="btn btn-default btn-rounded mb-4" data-toggle="modal" data-target="#modalSubscriptionForm">Ξέχασα το Password μου...</a>
+</div>
+                            
+          </span>                  
+                            
+                            
+                            
+                            </div>
                         </div>
                     </div>
                 
@@ -145,6 +241,14 @@ if (isset($filtered_post['form-username']) && isset($filtered_post['form-passwor
             </div>
             
         </div>
+
+
+
+  
+
+
+
+
 
 
         <!-- Javascript -->
@@ -170,6 +274,43 @@ if (isset($filtered_post['form-username']) && isset($filtered_post['form-passwor
 <!-- End Footer --></p>
 
 	</div>
+   
+    <script type="text/javascript">
+
+
+
+$(document).ready(function(){ 
+  
+  var mymodal = $("[name='passwordResetModal']");
+ 
+    $('#passwordResetForm').submit(function(e){
+      e.preventDefault();
+   
+
+   mymodal.find("#submitButton").html('<img src="ajax-loader.gif"> &nbsp; &nbsp; Παρακαλώ περιμένετε</img>').prop('disabled',true);
+      $.post('passwordReminder.php', 
+         $('#passwordResetForm').serialize(), 
+       
+         
+         function(data, status, xhr){
+
+         mymodal.find('form').trigger('reset');
+    
+        mymodal.find("#submitButton").html("Αποστολή").prop('disabled',false);
+        mymodal.modal('hide');
+        $("#getMessage").html(data);
+        $("#messageModal").modal('show');
+       
+         });
+     
+});
+
+});
+
+
+        </script>
+
+   
     </body>
 
 </html>

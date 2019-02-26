@@ -1,31 +1,35 @@
 <?php 
-if (!isset($_SESSION)) {
-  session_start();
-}
+  if(!isset($_SESSION)) 
+  { 
+      session_start(); 
+  } 
 $now = time();
 if (isset($_SESSION['discard_after']) && $now > $_SESSION['discard_after']) {
+   
+    session_unset();
+    session_destroy();
+   
+}
 
+if(!isset($_SESSION['loggedIn']) || $_SESSION['loggedIn']!=1){
+    header('Location: index.php');
+    exit();
+}
+
+
+if ( $_SESSION['Access_level']!='admin')
+{
   session_unset();
   session_destroy();
-
-}
-
-if (!isset($_SESSION['loggedIn']) || $_SESSION['loggedIn'] != 1) {
-  header('Location: index.php');
-  exit();
-}
-
-
-if ($_SESSION['Access_level'] != 'admin') {
-  session_unset();
-  session_destroy();
   header('Location: index.php');
   exit();
 
 }
+
+
 
 ?>
-<nav class="navbar navbar-default navbar-fixed-top" style="background-color: #e3f2fd;">
+<nav class="navbar navbar-default navbar-static-top" style="background-color: #e3f2fd;">
   <div class="container-fluid">
  
     <div class="navbar-header">
@@ -100,7 +104,17 @@ if ($_SESSION['Access_level'] != 'admin') {
              <li><a href="sms_log_user_alt.php"><span style="color:red;">Στατιστικά SMS / Username </span></a></li>
           </ul>
         </li> 
-		   		  
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Παράμετροι Χρήστη<span class="caret"></span></a>
+          <ul class="dropdown-menu">
+         
+          
+             <li><a href="user_details.php">Στοιχεία Χρήστη </a></li>
+             <li><a href="template_list.php">Πρότυπα SMS Χρήστη </a></li>
+            
+          </ul>
+        </li> 
+
         <li><a href="logout.php"> <span style="color:red">Έξοδος<span></a></li>
         <li> <span style="color:green">Έχετε συνδεθεί ως <?php echo $_SESSION['Username'] ?><span></li>
 
@@ -114,6 +128,7 @@ if ($_SESSION['Access_level'] != 'admin') {
 <style type="text/css">
 body {
     background-color: #f5f5f5;
-    padding-top: 70px; 
+  /*   padding-top: 110px;  */
 }
+
 </style>

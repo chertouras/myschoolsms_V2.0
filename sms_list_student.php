@@ -2,26 +2,26 @@
 session_start();
 $now = time();
 if (isset($_SESSION['discard_after']) && $now > $_SESSION['discard_after']) {
-
+    
     session_unset();
     session_destroy();
-
+   
 }
 
-if (!isset($_SESSION['loggedIn']) || $_SESSION['loggedIn'] != 1) {
+if(!isset($_SESSION['loggedIn']) || $_SESSION['loggedIn']!=1){
     header('Location: index.php');
     exit();
 }
 
 include 'parameters.php';
-$mysqli = new mysqli($servername, $username, $password, $dbname);
+$mysqli = new mysqli($servername, $username, $password , $dbname);
 $mysqli->set_charset('utf8');
 $sql = <<<SQL
     SELECT id , RegistrationNumber , FirstName , LastName , FatherFirstName , BirthDate , Telephone1 , LevelName
     FROM `students`
 SQL;
 
-if (!$result = $mysqli->query($sql)) {
+if(!$result = $mysqli->query($sql)){
     die('Υπήρξε κάποιο πρόβλημα στο σύστημα της βάσης δεδομένων [' . $mysqli->error . ']');
 }
 ?>
@@ -105,6 +105,74 @@ margin-left:10px;
                     $("#smsNum_counter").text('140');
                 }
             );
+
+
+
+
+
+
+
+            var templatesTable= $('#templatesTable').DataTable({
+          "processing": true,
+            "serverSide": true,
+            "ajax":{url:'templates_list_db.php',"cache":false},
+            responsive: true,
+                "columnDefs": [
+                    {
+                        "targets": [0],
+                        "searchable": false
+                     
+                    },
+                    {
+                        "targets": [-1],
+                        "data": null,
+                        "defaultContent": "<button type='button' class='use btn btn-xs btn-primary'>Χρήση&nbsp;</button>"
+                    }, 
+                     {
+                        "className": "dt-center",
+                        "targets": "_all"
+                    }],
+                "order": [
+                    [1, "asc"],
+                    [0, "asc"]
+                ],
+                language: {
+                    "sDecimal": ",",
+                    "sEmptyTable": "Δεν υπάρχουν δεδομένα στον πίνακα",
+                    "sInfo": "Εμφανίζονται _START_ έως _END_ από _TOTAL_ εγγραφές",
+                    "sInfoEmpty": "Εμφανίζονται 0 έως 0 από 0 εγγραφές",
+                    "sInfoFiltered": "(φιλτραρισμένες από _MAX_ συνολικά εγγραφές)",
+                    "sInfoPostFix": "",
+                    "sInfoThousands": ".",
+                    "sLengthMenu": "Δείξε _MENU_ εγγραφές",
+                    "sLoadingRecords": "Φόρτωση...",
+                    "sProcessing": "Επεξεργασία...",
+                    "sSearch": "Αναζήτηση:",
+                    "sSearchPlaceholder": "Αναζήτηση",
+                    "sThousands": ".",
+                    "sUrl": "",
+                    "sZeroRecords": "Δεν βρέθηκαν εγγραφές που να ταιριάζουν",
+                    "oPaginate": {
+                        "sFirst": "Πρώτη",
+                        "sPrevious": "Προηγούμενη",
+                        "sNext": "Επόμενη",
+                        "sLast": "Τελευταία"
+                    },
+                    "oAria": {
+                        "sSortAscending": ": ενεργοποιήστε για αύξουσα ταξινόμηση της στήλης",
+                        "sSortDescending": ": ενεργοποιήστε για φθίνουσα ταξινόμηση της στήλης"
+                    },
+                    'select': {
+                        'rows': "%d επιλεγμένες στύλες"
+                    }
+                }
+
+            });
+
+
+
+
+
 
             var table = $('#students').DataTable({
               "dom": '<"#buttonDiv"B>lfrtip',
@@ -323,7 +391,8 @@ initComplete: function () {
           var rowData = this.data();
    
            $('#sms_names')   
-        .append('<tr  style="border: 1px solid black; display : table-row;"><td style=" border: 1px solid black;font-size: 85%;font-weight: bold; " id="smsno'+rowIdx+'">'+rowData[2] + ' ' + rowData[3] + ' ' + ' </td><td  style=" color: blue; border: 1px solid black;">'+rowData[6])
+        .append('<tr  style="border: 1px solid black; display : table-row;"><td style=" border: 1px solid black;font-size: 85%;font-weight: bold; " id="smsno'+rowIdx+'">'+rowData[2] + ' ' + rowData[3] + ' ' 
+                + ' </td><td  style=" color: blue; border: 1px solid black;">'+rowData[6]+' </td><td  style=" color: blue; border: 1px solid black;">')
         .append('</td></tr>');
    
          });
@@ -331,9 +400,73 @@ initComplete: function () {
            
            };
  
-          
+
+
+
+
+
  
- 
+ $('#saveTemplate').on("click", function (){
+    var textareaData= $('#message').val();
+    if (textareaData.length===0 )
+       {
+       
+        
+        $('#emptySMS').modal('show')
+
+       }
+
+       else {
+    //exit();
+    //check if val is null
+    mymessage = 'Γίνεται αποθήκευση του μυνήματος ως προτύπου...';
+    $.growl.error({title: "Αποθήκευση σε εξέλιξη", message:mymessage });
+    $.ajax({
+                
+                url: "insert_template_db.php",
+                method: "POST",
+                data: {template:textareaData},
+                 cache: false,
+                    success:function(result){
+                        $.growl.error({title: "Μήνυμα συστήματος", message:'Επιτυχής Αποθήκευση' });          }
+                   });
+
+       }
+
+ })
+
+ $('#useTemplate').on("click", function (){
+$('#templatesToUse').on('shown.bs.modal', function (e) {
+    templatesTable.ajax.reload();
+      $.fn.dataTable.tables( {visible: true, api: true} ).columns.adjust();
+}).modal('show');
+
+
+$('#templatesTable').on('click', '.use', function (e) {
+                templatesTable.ajax.reload();
+                console.log(templatesTable);
+                var table = $(this).closest('table').DataTable();
+                
+                if (!jQuery.isEmptyObject(table.row($(this).parents('tr')).data())) {
+                    var data = table.row($(this).parents('tr')).data();
+                } else {
+                    var data = table.row((this)).data();
+                }
+                $('#message').val(data[2]);
+
+
+                length = new Number(maxChars.val().length);
+                    counter = max_length - length;
+                    $("#smsNum_counter").text(counter);
+            });
+
+
+
+
+
+
+ });
+/*   */
  
  });  //document ready
 
@@ -342,18 +475,20 @@ initComplete: function () {
 
 <body>
 <?php
-if ($_SESSION["Access_level"] === 'moderator') {
-    include 'navigation_moderator.php';
-} elseif ($_SESSION["Access_level"] === 'admin') {
-    include 'navigation_admin.php';
-} elseif ($_SESSION["Access_level"] === 'user') {
-    include 'navigation_user.php';
-} else {
+if ($_SESSION["Access_level"]==='moderator')
+{include 'navigation_moderator.php';}
+elseif  ($_SESSION["Access_level"]==='admin')
+{include 'navigation_admin.php';}
+elseif  ($_SESSION["Access_level"]==='user')
+{include 'navigation_user.php';}
 
-    session_unset();
-    session_destroy();
-    header('Location: index.php');
-    exit();
+
+else {
+
+  session_unset();
+  session_destroy();
+  header('Location: index.php');
+  exit();
 
 }
 
@@ -409,34 +544,35 @@ echo "<table id='students' class='table table-striped table-bordered' width='100
 
 
 
-while ($row = $result->fetch_assoc()) {
-    echo "<tr>";
-    echo "<td>" . $row['id'] . "</td>";
-    echo "<td>" . $row['RegistrationNumber'] . "</td>";
-    echo "<td>" . $row['LastName'] . "</td>";
-    echo "<td>" . $row['FirstName'] . "</td>";
-    echo "<td>" . $row['FatherFirstName'] . "</td>";
-    echo "<td>" . $row['BirthDate'] . "</td>";
-    echo "<td>" . $row['Telephone1'] . "</td>";
-    echo "<td>" . $row['LevelName'] . "</td>";
-    echo "</tr>";
+while($row = $result->fetch_assoc())
+{
+echo "<tr>";
+echo "<td>" . $row['id'] . "</td>";
+echo "<td>" . $row['RegistrationNumber'] . "</td>";
+echo "<td>" . $row['LastName'] . "</td>";
+echo "<td>" . $row['FirstName'] . "</td>";
+echo "<td>" . $row['FatherFirstName'] . "</td>";
+echo "<td>" . $row['BirthDate'] . "</td>";
+echo "<td>" . $row['Telephone1'] . "</td>";
+echo "<td>" . $row['LevelName'] . "</td>";
+echo "</tr>";
 }
 echo "</tbody></table>";
-$Username = $_SESSION['Username'];
+$Username=$_SESSION['Username'];
 $sql = <<<SQL
     SELECT quota from users  where Username='$Username'
 SQL;
 
-if (!$result = $mysqli->query($sql)) {
+if(!$result = $mysqli->query($sql)){
     die('Υπήρξε κάποιο πρόβλημα στο σύστημα της βάσης δεδομένων [' . $mysqli->error . ']');
 }
 $row = $result->fetch_assoc();
-if (intval($row['quota']) < 1) {
+if (intval($row['quota']) < 1){
 
 
-
-    echo
-        "
+ 
+ echo 
+ "
   <div class=\"modal fade\" id=\"myModal\" role=\"dialog\">
     <div class=\"modal-dialog\">
     
@@ -469,7 +605,7 @@ if (intval($row['quota']) < 1) {
       
     });
  </script>";
-}
+ }
 ?>   
     <br>
     <br>
@@ -479,17 +615,87 @@ if (intval($row['quota']) < 1) {
     <button id='togglebutton' class='btn btn-primary'>Εμφάνιση περισσότερων</button>
     <br>
     <br>
-    <div id="divform" style='margin-bottom:20px'>
+    <div id="divform" style='margin-bottom:20px;display:inline-block;'>
         <form id="frm" action="#" method="GET">
             <textarea id="message" name="message" rows="4" cols="50" maxlength="140" required></textarea>
-            <br>
+            <div style="display:inline-block">
+            <button id="saveTemplate"  type="button" class="btn btn-danger" style="display:block;  width: 160px !important;">Αποθήκευση προτύπου</button>
+            <button  id="useTemplate"  type="button" class="btn btn-info" style="display:block; width: 160px !important;">Χρήση προτύπου</button>
+            </div>  
+            
             <br> Υπολοιπόμενοι Χαρακτήρες: <span id="smsNum_counter">140</span><br>
             <br>
             <button id="clear" type="reset" class='btn btn-danger'>Καθαρισμός</button>
-            <button id="apostoli" class='btn btn-success' type="submit"> <span id="spanloading" class="glyphicon"></span> Αποστολή</button>
+            <button id="apostoli" class='btn btn-success' type="submit"> 
+            <span id="spanloading" class="glyphicon"></span> Αποστολή</button>
         </form>
-    </div>
 
-  
+       
+    </div> 
+    <div style='display:inline-block;'></div>
+
+
+
+
+
+
+
+
+    <div class="modal fade" id="emptySMS" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Μήνυμα Συστήματος</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+      Δεν έχετε γράψει περιεχόμενο για να έχει νόημα η αποθήκευση.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Κλείσιμο</button>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!--    
+
+Modal to hold the templates
+
+-->
+
+<div class="modal fade" id="templatesToUse" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Πρότυπα Χρήστη</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+      <table id='templatesTable' class='table table-striped table-bordered' width='100%' cellspacing='0'>
+<thead>
+<tr>
+    <th>id</th>
+    <th>Όνομα Χρήστη</th>
+    <th>Πρότυπο</th>
+    <th data-b-sortable="false"></th>
+    </tr> </thead> <tbody>
+</tbody></table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Κλείσιμο</button>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
-</html>
+</html> 

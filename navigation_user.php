@@ -1,29 +1,31 @@
 <?php 
-if (!isset($_SESSION)) {
-  session_start();
-}
+  if(!isset($_SESSION)) 
+  { 
+      session_start(); 
+ } 
 
-if ($_SESSION['Access_level'] != 'user') {
+if ($_SESSION['Access_level'] !='user' )
+{
   session_unset();
   session_destroy();
   header('Location: index.php');
-  exit();
+    exit();
 }
 
 $now = time();
 if (isset($_SESSION['discard_after']) && $now > $_SESSION['discard_after']) {
-
-  session_unset();
-  session_destroy();
-
+   
+    session_unset();
+    session_destroy();
+   
 }
 
-if (!isset($_SESSION['loggedIn']) || $_SESSION['loggedIn'] != 1) {
-  header('Location: index.php');
-  exit();
+if(!isset($_SESSION['loggedIn']) || $_SESSION['loggedIn']!=1){
+    header('Location: index.php');
+    exit();
 }
 ?>
-<nav class="navbar navbar-default navbar-fixed-top" style="background-color: #e3f2fd;">
+<nav class="navbar navbar-default navbar-static-top" style="background-color: #e3f2fd;">
   <div class="container-fluid">
  
     <div class="navbar-header">
@@ -64,7 +66,15 @@ if (!isset($_SESSION['loggedIn']) || $_SESSION['loggedIn'] != 1) {
           </ul>
         </li> 
 
-
+ <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Διαχείριση Χρήστη<span class="caret"></span></a>
+          <ul class="dropdown-menu">
+         
+          
+             <li><a href="user_details.php">Στοιχεία Χρήστη </a></li>
+             <li><a href="template_list.php">Πρότυπα SMS Χρήστη </a></li>
+          </ul>
+        </li> 
 
 
 
@@ -81,6 +91,7 @@ if (!isset($_SESSION['loggedIn']) || $_SESSION['loggedIn'] != 1) {
 <style type="text/css">
 body {
     background-color: #f5f5f5;
-    padding-top: 70px; 
+    /* padding-top: 110px;  */
 }
+
 </style>
